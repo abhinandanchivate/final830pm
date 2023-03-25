@@ -1,33 +1,32 @@
 import React, { useState } from "react";
 import api from "../../utils/api";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import { register } from "../../redux/action/authAction";
+import { useNavigate } from "react-router-dom";
+
 const initialState = {
   name: "",
   email: "",
   password: "",
   confirmPassword: "",
 };
-const Register2 = () => {
+
+export const Register2 = ({ isAuthenticated, register }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(initialState);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState([]);
   const { email, password, confirmPassword, name } = formData;
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   const onSubmit = (e) => {
     e.preventDefault();
-    console.log("hello from submit");
-    console.log(formData);
-    //api.post();
-    // URL :
-    // Data:
-    // Configuration :
+
     if (password === confirmPassword) {
-      api
-        .post("/users", formData)
-        .then((res) => console.log(res.data))
-        .catch((err) => {
-          err.response.data.errors.forEach((e) => console.log(e.msg));
-        });
+      register(formData).then(() => {
+        navigate("/dashboard");
+      });
     } else {
       console.log("password and confirm password should be same");
     }
@@ -45,10 +44,12 @@ const Register2 = () => {
               type="text"
               placeholder="Name"
               name="name"
-              required
               value={name}
               onChange={onChange}
             />
+            <div className="d-block invalid-feedback">
+              {errors[0] && errors[0].param == "name" ? errors[0].msg : ""}
+            </div>
           </div>
           <div class="form-group">
             <input
@@ -58,6 +59,9 @@ const Register2 = () => {
               value={email}
               onChange={onChange}
             />
+            <div className="d-block invalid-feedback">
+              {errors[1] && errors[1].param == "email" ? errors[1].msg : ""}
+            </div>
             <small class="form-text">
               This site uses Gravatar so if you want a profile image, use a
               Gravatar email
@@ -72,6 +76,9 @@ const Register2 = () => {
               value={password}
               onChange={onChange}
             />
+            <div className="d-block invalid-feedback">
+              {errors[2] && errors[2].param == "password" ? errors[2].msg : ""}
+            </div>
           </div>
           <div class="form-group">
             <input
@@ -93,7 +100,19 @@ const Register2 = () => {
   );
 };
 
-export default Register2;
+Register2.propTypes = {
+  isAuthenticated: PropTypes.bool,
+  register: PropTypes.func.isRequired,
+};
+
+const mapStateToProps = (state) => ({
+  isAuthenticated: state.authReducer.isAuthenticated,
+});
+
+const mapDispatchToProps = { register };
+
+export default connect(mapStateToProps, mapDispatchToProps)(Register2);
+
 // class based components : smart components.
 // dumb components : we can't have any processing or can't write any BL stuff.
 

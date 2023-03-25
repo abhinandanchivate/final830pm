@@ -1,10 +1,16 @@
 import React, { useState } from "react";
-import api from "../../utils/api";
+
+import PropTypes from "prop-types";
+import { login } from "../../redux/action/authAction";
+import { connect } from "react-redux";
+import { useNavigate } from "react-router-dom";
 const initialState = {
   email: "",
   password: "",
 };
-const Login2 = () => {
+
+export const Login2 = ({ login, isAuthenticated }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
   const onChange = (e) => {
@@ -13,14 +19,9 @@ const Login2 = () => {
   const { email, password } = formData;
   const onSubmit = (e) => {
     e.preventDefault();
-    console.log("hello from submit");
-    console.log(formData);
-    api
-      .post("/auth", formData)
-      .then((res) => console.log(res.data))
-      .catch((err) =>
-        err.response.data.errors.forEach((e) => console.log(e.msg))
-      );
+    login(formData).then(() => {
+      navigate("/dashboard");
+    });
   };
   return (
     <>
@@ -59,4 +60,15 @@ const Login2 = () => {
   );
 };
 
-export default Login2;
+Login2.propTypes = {
+  login: PropTypes.func.isRequired,
+  isAuthenticated: PropTypes.bool.isRequired,
+};
+
+const mapStateToProps = (state) => ({
+  isAuthenticated: state.authReducer.isAuthenticated,
+});
+
+const mapDispatchToProps = { login };
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login2);
